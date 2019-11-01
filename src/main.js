@@ -1,9 +1,9 @@
 import P5 from 'p5'
+import PolynomialRegression from "js-polynomial-regression";
 
 const script = function (p5) {
     let coords = [];
 
-    // NOTE: Set up is here
     p5.setup = () => {
         p5.createCanvas(500, 500);
         // for (let i = 20; i < p5.width; i += 20) {
@@ -14,7 +14,6 @@ const script = function (p5) {
         // }
     };
 
-    // NOTE: Draw is here
     p5.draw = () => {
         p5.background(250);
         for (let i = 0; i < coords.length; i++) {
@@ -24,15 +23,25 @@ const script = function (p5) {
         }
 
         if (coords.length > 1) {
-            let equation = ordinaryLeastSquare(coords);
-            p5.stroke(200, 0, 0, 200);
-            p5.line(0, straightLine(equation, 0),
-                p5.width, straightLine(equation, p5.width));
+            if (isLinear()) {
+                let equation = ordinaryLeastSquare(coords);
+                p5.stroke(200, 0, 0, 200);
+                p5.line(0, straightLine(equation, 0),
+                    p5.width, straightLine(equation, p5.width));
 
-            p5.textSize(32);
-            p5.stroke(0);
-          p5.strokeWeight(1);
-            p5.text(toText(equation), 15, 30)
+                p5.textSize(32);
+                p5.stroke(0);
+                p5.strokeWeight(1);
+                p5.text(toText(equation), 15, 30)
+            } else {
+
+                const model = PolynomialRegression.read(coords, 3)
+                const terms = model.getTerms()
+                for (let x = 0; x < p5.width; x += 10) {
+                    let y = model.predictY(terms, x);
+                    p5.circle(x, y, 5);
+                }
+            }
         }
     };
 
@@ -44,6 +53,10 @@ const script = function (p5) {
     }
 };
 new P5(script);
+
+function isLinear() {
+    return document.getElementById('linear').checked
+}
 
 function straightLine(equation, x) {
     return equation.k * x + equation.m
